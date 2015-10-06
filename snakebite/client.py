@@ -1079,6 +1079,38 @@ class Client(object):
 
         return self.service.complete(request)
 
+    def get_block_id(self, path, offset):
+        fileinfo = self._get_file_info(path)
+        length = fileinfo.fs.length
+        request = client_proto.GetBlockLocationsRequestProto()
+        request.src = path
+
+        #request a single block of 128MB
+        request.length = 128*1024*1024
+
+        request.offset = offset
+        response = self.service.getBlockLocations(request)
+
+        ret = (b.b.blockId, b.offset)
+        print ret
+        return ret
+    def get_block_ids(self, path):
+        fileinfo = self._get_file_info(path)
+        length = fileinfo.fs.length
+        request = client_proto.GetBlockLocationsRequestProto()
+        request.src = path
+        request.length = length
+
+        request.offset = long(0)
+
+        response = self.service.getBlockLocations(request)
+
+        ret = []
+        for b in response.locations.blocks:
+            ret.append((b.b.blockId, b.offset))
+        print ret
+        return ret
+
     def _read_file(self, path, node, tail_only, check_crc, tail_length=1024):
         length = node.length
 
